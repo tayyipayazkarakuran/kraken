@@ -179,7 +179,6 @@ pub struct Search {
     pub items: String,
     pub items_target: String,
     pub bonus: String,
-    pub workmap: String,
     /// The NPC or monster target whose settings window is open.
     pub editing: Option<(kraken_proto::names::NameKind, i32)>,
     pub log_filter: Option<Level>,

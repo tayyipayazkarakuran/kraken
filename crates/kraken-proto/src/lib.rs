@@ -7,7 +7,7 @@ pub use config::*;
 pub use message::*;
 pub use wire::*;
 
-pub const PROTO_VERSION: u32 = 8;
+pub const PROTO_VERSION: u32 = 9;
 
 /// The two IPC pipe names, derived from the pid. Deliberately unbranded and
 /// per-process (not a static string like some bots' fixed pipe), so a scan

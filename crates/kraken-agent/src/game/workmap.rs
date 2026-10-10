@@ -112,21 +112,30 @@ pub fn save_edges(edges: &[(i16, usize, i16)]) {
     }
 }
 
+/// The world map as of the 2026-10 client, for when the game has not loaded
+/// its own copy yet (it does so with the world map window).
+const BUILT_IN: &str = include_str!("atlas.tsv");
+
 fn load_file() -> Vec<MapCell> {
     let Some(text) = atlas_path().and_then(|p| std::fs::read_to_string(p).ok()) else {
         return Vec::new();
     };
+    parse(&text)
+}
+
+fn parse(text: &str) -> Vec<MapCell> {
     text.lines()
         .filter_map(|line| {
-            let mut parts = line.split('\t');
-            let mut next = || parts.next()?.trim().parse::<i32>().ok();
+            let parts: Vec<&str> = line.split('\t').map(str::trim).collect();
+            let number = |i: usize| parts.get(i)?.parse::<i32>().ok();
             Some(MapCell {
-                id: i16::try_from(next()?).ok()?,
-                world: u8::try_from(next()?).ok()?,
-                row: u8::try_from(next()?).ok()?,
-                col: u8::try_from(next()?).ok()?,
-                safe_haven: next()? != 0,
-                min_level: next()?,
+                id: i16::try_from(number(0)?).ok()?,
+                world: u8::try_from(number(1)?).ok()?,
+                row: u8::try_from(number(2)?).ok()?,
+                col: u8::try_from(number(3)?).ok()?,
+                safe_haven: number(4)? != 0,
+                min_level: number(5)?,
+                label: parts.get(6).copied().unwrap_or_default().to_owned(),
             })
         })
         .collect()
@@ -164,7 +173,11 @@ impl Game {
         if !cache.loaded_file {
             cache.loaded_file = true;
             cache.cells = load_file();
-            if !cache.cells.is_empty() {
+            // An old cache without labels gives way to the built-in one.
+            if cache.cells.iter().all(|c| c.label.is_empty()) {
+                cache.cells = parse(BUILT_IN);
+                tracing::info!(maps = cache.cells.len(), "atlas built in");
+            } else {
                 tracing::info!(maps = cache.cells.len(), "atlas from cache");
             }
         }
@@ -231,7 +244,9 @@ impl Game {
                         if kind == "Empty" || id <= 0 {
                             continue;
                         }
+                        let label = crate::il2cpp::read_string(self.obj(cell, "mapname"));
                         cells.push(MapCell {
+                            label: label.trim().to_owned(),
                             id: id as i16,
                             world: world.min(255) as u8,
                             row: row as u8,

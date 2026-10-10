@@ -450,11 +450,31 @@ pub struct Catalog {
     pub atlas: Vec<AtlasEntry>,
 }
 
+/// Which part of the world a map belongs to.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum MapRegion {
+    /// The surface world.
+    #[default]
+    Nautica,
+    /// The undersea world.
+    Atlantis,
+    /// The Ragnarök maps (RÖK-1…9), entered with an item.
+    Ragnarok,
+}
+
+impl MapRegion {
+    pub const ALL: [Self; 3] = [Self::Nautica, Self::Atlantis, Self::Ragnarok];
+}
+
 /// A map cell of the game's world map.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AtlasEntry {
     pub id: i16,
+    /// The world map's own label: "30/1", "SH-6", "RÖK-1", "DH-1"…
+    pub label: String,
+    /// The localised name, when the game has one (safe havens and the like).
     pub name: String,
+    pub region: MapRegion,
     /// 0: Nautica (surface), 1: Atlantis and so on, as the game orders them.
     pub world: u8,
     pub row: u8,

@@ -352,7 +352,7 @@ pub enum Action {
 }
 
 /// A map on the game's world map (`Seafight.WorldMap.MapCellData`).
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct MapCell {
     pub id: i16,
     pub world: u8,
@@ -360,4 +360,6 @@ pub struct MapCell {
     pub col: u8,
     pub safe_haven: bool,
     pub min_level: i32,
+    /// The world map's own label: "30/1", "SH-6", "RÖK-1", "DH-1"…
+    pub label: String,
 }

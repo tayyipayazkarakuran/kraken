@@ -1946,6 +1946,7 @@ mod workmap {
             col,
             safe_haven: false,
             min_level: 0,
+            label: id.to_string(),
         }
     }
 

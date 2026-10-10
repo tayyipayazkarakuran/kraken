@@ -8,8 +8,8 @@ use std::time::Instant;
 use kraken_proto::names::{NameKind, NameTable};
 use kraken_proto::{
     ActionItemEntry, AgentMessage, AppMessage, AtlasEntry, BindingReport, BonusMapEntry, Capabilities,
-    Catalog, CatalogEntry, EntityKind, Event, EventCode, Hero, ItemEntry, Level, MapInfo, NearbyIds,
-    PROTO_VERSION, RunState, ScreenMarkers, SessionState, StockKind, Telemetry, VisibleCounts,
+    Catalog, CatalogEntry, EntityKind, Event, EventCode, Hero, ItemEntry, Level, MapInfo, MapRegion,
+    NearbyIds, PROTO_VERSION, RunState, ScreenMarkers, SessionState, StockKind, Telemetry, VisibleCounts,
 };
 use parking_lot::Mutex;
 use retour::RawDetour;
@@ -176,7 +176,12 @@ impl Book {
                 .iter()
                 .zip(&self.atlas)
                 .any(|(c, e)| c.id != e.id)
-            || self.atlas.iter().any(|e| e.name.starts_with('#'))
+            || scan
+                .world
+                .atlas
+                .iter()
+                .zip(&self.atlas)
+                .any(|(c, e)| c.label != e.label)
         {
             let atlas: Vec<AtlasEntry> = scan
                 .world
@@ -184,10 +189,26 @@ impl Book {
                 .iter()
                 .map(|c| AtlasEntry {
                     id: c.id,
-                    name: self
-                        .names
-                        .get(NameKind::Map, i32::from(c.id))
-                        .map_or_else(|| format!("#{}", c.id), str::to_owned),
+                    label: c.label.clone(),
+                    // Map ids of the world map overlap the bonus maps' loca
+                    // labels; only safe havens have a name of their own.
+                    name: if c.safe_haven {
+                        self.names
+                            .get(NameKind::Map, i32::from(c.id))
+                            .unwrap_or_default()
+                            .to_owned()
+                    } else {
+                        String::new()
+                    },
+                    region: if c.world == 1 {
+                        MapRegion::Atlantis
+                    } else if c.label.to_uppercase().starts_with("RÖK")
+                        || c.label.to_uppercase().starts_with("ROK")
+                    {
+                        MapRegion::Ragnarok
+                    } else {
+                        MapRegion::Nautica
+                    },
                     world: c.world,
                     row: c.row,
                     col: c.col,
