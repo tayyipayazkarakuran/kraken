@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kraken</string>
+    <string name="game_url">Oyun adresi</string>
+    <string name="save">Kaydet</string>
+    <string name="cancel">İptal</string>
+    <string name="menu_start">Başlat</string>
+    <string name="menu_pause">Duraklat</string>
+    <string name="menu_stop">Durdur</string>
+    <string name="menu_probe">Modülü incele (konsol)</string>
+    <string name="menu_url">Oyun adresini değiştir</string>
+    <string name="menu_reload">Yeniden yükle</string>
+    <string name="no_document_start">Bu WebView sürümü sayfa başında betik çalıştırmayı desteklemiyor; Android System WebView\'i güncelleyin.</string>
+</resources>

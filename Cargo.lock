@@ -1276,6 +1276,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kraken-web"
+version = "0.1.0"
+dependencies = [
+ "kraken-agent",
+ "kraken-proto",
+ "postcard",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "kurbo"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

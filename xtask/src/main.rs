@@ -3,6 +3,7 @@ use std::process::{Command, ExitCode};
 
 const APP_TARGET: &str = "x86_64-pc-windows-msvc";
 const AGENT_TARGET: &str = "i686-pc-windows-msvc";
+const WEB_TARGET: &str = "wasm32-unknown-unknown";
 
 fn root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -13,16 +14,20 @@ fn root() -> PathBuf {
 
 fn cargo(args: &[&str]) -> Result<(), String> {
     let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".into());
-    println!("> cargo {}", args.join(" "));
-    let status = Command::new(cargo)
+    run(&cargo, args, &root())
+}
+
+fn run(program: &str, args: &[&str], dir: &Path) -> Result<(), String> {
+    println!("> {program} {}", args.join(" "));
+    let status = Command::new(program)
         .args(args)
-        .current_dir(root())
+        .current_dir(dir)
         .status()
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| format!("{program}: {e}"))?;
     if status.success() {
         Ok(())
     } else {
-        Err(format!("cargo {} failed with {status}", args.join(" ")))
+        Err(format!("{program} {} failed with {status}", args.join(" ")))
     }
 }
 
@@ -78,6 +83,54 @@ fn dist() -> Result<PathBuf, String> {
     Ok(out)
 }
 
+/// kraken-web for the browser build: the wasm, its `wasm-bindgen` glue and
+/// the bootstrap, written into the Android app's assets.
+fn web() -> Result<PathBuf, String> {
+    cargo(&[
+        "build",
+        "--release",
+        "--package",
+        "kraken-web",
+        "--target",
+        WEB_TARGET,
+    ])?;
+    let wasm = root()
+        .join("target")
+        .join(WEB_TARGET)
+        .join("release")
+        .join("kraken_web.wasm");
+    let out = root().join("android/app/src/main/assets/kraken");
+    std::fs::create_dir_all(&out).map_err(|e| e.to_string())?;
+    let (wasm, out_dir) = (wasm.to_string_lossy(), out.to_string_lossy());
+    // The CLI must match the `wasm-bindgen` version in Cargo.lock:
+    // `cargo install wasm-bindgen-cli --version <that version>`.
+    run(
+        "wasm-bindgen",
+        &[
+            "--target",
+            "no-modules",
+            "--no-typescript",
+            "--out-dir",
+            &out_dir,
+            &wasm,
+        ],
+        &root(),
+    )?;
+    copy(
+        &root().join("android/kraken-web/js/kraken-boot.js"),
+        &out.join("kraken-boot.js"),
+    )?;
+    Ok(out)
+}
+
+fn android() -> Result<PathBuf, String> {
+    web()?;
+    let project = root().join("android");
+    let gradle = if cfg!(windows) { "gradlew.bat" } else { "./gradlew" };
+    run(gradle, &["assembleDebug"], &project)?;
+    Ok(project.join("app/build/outputs/apk/debug/app-debug.apk"))
+}
+
 fn check() -> Result<(), String> {
     cargo(&["fmt", "--all", "--check"])?;
     cargo(&["clippy", "--workspace", "--all-targets", "--", "-D", "warnings"])?;
@@ -90,6 +143,16 @@ fn check() -> Result<(), String> {
         "kraken-injector",
         "--target",
         AGENT_TARGET,
+        "--",
+        "-D",
+        "warnings",
+    ])?;
+    cargo(&[
+        "clippy",
+        "--package",
+        "kraken-web",
+        "--target",
+        WEB_TARGET,
         "--",
         "-D",
         "warnings",
@@ -156,11 +219,13 @@ fn main() -> ExitCode {
     let result = match task.as_deref() {
         Some("dist") => dist().map(|out| println!("dist ready: {}", out.display())),
         Some("check") => check(),
+        Some("web") => web().map(|out| println!("web build ready: {}", out.display())),
+        Some("android") => android().map(|apk| println!("apk ready: {}", apk.display())),
         Some("reload") => match std::env::args().nth(2) {
             Some(pid) => reload(&pid),
             None => Err("usage: cargo xtask reload <pid>".into()),
         },
-        _ => Err("usage: cargo xtask <dist|check|reload <pid>>".into()),
+        _ => Err("usage: cargo xtask <dist|check|web|android|reload <pid>>".into()),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
