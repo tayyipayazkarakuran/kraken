@@ -56,7 +56,8 @@ Bu komut biçim denetimini, clippy'yi (`-D warnings`) ve bütün testleri çalı
 | `crates/kraken-agent` | Oyunun içindeki DLL: IL2CPP bağlamaları, mesaj kancaları, D3D11 katmanı ve karar motoru (`src/engine`) |
 | `crates/kraken-injector` | Küçük bir 32 bit injector |
 | `crates/kraken-proto` | Uygulama ↔ ajan protokolü: ayarlar, telemetri ve isimli boru (named pipe) çerçeveleme |
-| `android` | Android uygulaması (oyunun tarayıcı sürümünü saran WebView) ve wasm'a derlenen motor `kraken-web`. Geliştirme aşamasında, bkz. [android/README.md](android/README.md) |
+| `web` | Telefonda ve her tarayıcıda Kraken: Cloudflare sitesi, userscript ve yalnızca sahibe açık proxy. Geliştirme aşamasında, bkz. [web/README.md](web/README.md) |
+| `android` | `web` ile ortak kullanılan `kraken-web` (wasm'a derlenen motor) ve `kraken-boot.js`; ayrıca isteğe bağlı Android WebView uygulaması |
 | `xtask` | `dist`, `check`, `reload` (geliştirme sırasında ajanı yeniden yükler), `web` ve `android` |
 
 Motor, oyun çağrısı içermeyen saf Rust kodudur. Bir `World` anlık görüntüsü alır ve `Action` listesi döndürür. Bu yüzden bütün davranışı (hedef seçimi, tamir kaçışı, bonus haritalar, Workmap rotası ve diğerleri) birim testleriyle sınanır.

@@ -83,8 +83,9 @@ fn dist() -> Result<PathBuf, String> {
     Ok(out)
 }
 
-/// kraken-web for the browser build: the wasm, its `wasm-bindgen` glue and
-/// the bootstrap, written into the Android app's assets.
+/// kraken-web for the browser build: the wasm, its `wasm-bindgen` glue, the
+/// bootstrap and the userscript, written into the site (`web/public/__kraken`)
+/// and the Android app's assets.
 fn web() -> Result<PathBuf, String> {
     cargo(&[
         "build",
@@ -99,7 +100,7 @@ fn web() -> Result<PathBuf, String> {
         .join(WEB_TARGET)
         .join("release")
         .join("kraken_web.wasm");
-    let out = root().join("android/app/src/main/assets/kraken");
+    let out = root().join("web/public/__kraken");
     std::fs::create_dir_all(&out).map_err(|e| e.to_string())?;
     let (wasm, out_dir) = (wasm.to_string_lossy(), out.to_string_lossy());
     // The CLI must match the `wasm-bindgen` version in Cargo.lock:
@@ -116,11 +117,42 @@ fn web() -> Result<PathBuf, String> {
         ],
         &root(),
     )?;
-    copy(
-        &root().join("android/kraken-web/js/kraken-boot.js"),
-        &out.join("kraken-boot.js"),
-    )?;
+    let read =
+        |path: &str| std::fs::read_to_string(root().join(path)).map_err(|e| format!("read {path}: {e}"));
+    let boot = read("android/kraken-web/js/kraken-boot.js")?;
+    std::fs::write(out.join("kraken-boot.js"), &boot).map_err(|e| e.to_string())?;
+    // The Worker fills in the site's origin when it serves /kraken.user.js.
+    let userscript = read("web/userscript.template.js")?
+        .replace("__KRAKEN_VERSION__", env!("CARGO_PKG_VERSION"))
+        .replace("__KRAKEN_BOOT__", &js_string(&boot));
+    std::fs::write(out.join("userscript.js"), userscript).map_err(|e| e.to_string())?;
+
+    let assets = root().join("android/app/src/main/assets/kraken");
+    std::fs::create_dir_all(&assets).map_err(|e| e.to_string())?;
+    for file in ["kraken_web.js", "kraken_web_bg.wasm", "kraken-boot.js"] {
+        copy(&out.join(file), &assets.join(file))?;
+    }
     Ok(out)
+}
+
+/// `text` as a JavaScript string literal.
+fn js_string(text: &str) -> String {
+    let mut out = String::with_capacity(text.len() + 2);
+    out.push('"');
+    for c in text.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\u{2028}' => out.push_str("\\u2028"),
+            '\u{2029}' => out.push_str("\\u2029"),
+            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+    out
 }
 
 fn android() -> Result<PathBuf, String> {

@@ -1,0 +1,11 @@
+{
+  "name": "Kraken",
+  "short_name": "Kraken",
+  "description": "Kraken'ı tarayıcıda kurma ve başlatma sayfası.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b161e",
+  "theme_color": "#103a54",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

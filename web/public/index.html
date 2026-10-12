@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Kraken</title>
+  <meta name="description" content="Kraken'ı telefonda ve bilgisayarda, oyunun tarayıcı sürümünde kullanmak için kurulum sayfası.">
+  <meta name="theme-color" content="#103a54">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Kraken">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <img src="/icon.svg" alt="" width="48" height="48">
+      <div>
+        <h1>Kraken</h1>
+        <p class="lead">Oyunun tarayıcı sürümünde, telefonda ve bilgisayarda çalışan yardımcı.</p>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>Nasıl çalışır?</h2>
+      <p>Oyun her zamanki gibi <b>resmi sitesinde</b> açılır ve giriş orada yapılır; şifreniz bu siteden geçmez. Tarayıcınıza eklenen küçük bir betik (userscript) Kraken'ı oyunun içine yükler ve sağ alt köşede bir <b>K</b> düğmesi belirir.</p>
+    </section>
+
+    <section class="card">
+      <div class="tabs" role="tablist">
+        <button role="tab" data-platform="ios">iPhone / iPad</button>
+        <button role="tab" data-platform="android">Android</button>
+        <button role="tab" data-platform="pc">Bilgisayar</button>
+      </div>
+
+      <ol class="steps" data-for="ios">
+        <li>App Store'dan ücretsiz <b>Userscripts</b> uygulamasını kurun ve Ayarlar → Safari → Uzantılar'dan açın (tüm sitelere izin verin).</li>
+        <li>Bu sayfayı <b>Safari</b>'de açıp aşağıdaki <b>Kraken'ı kur</b> düğmesine dokunun, adres çubuğundaki uzantı simgesinden betiği kaydedin.</li>
+        <li><b>Oyunu aç</b> ile oyuna girin, giriş yapın ve oyuna başlayın.</li>
+      </ol>
+      <ol class="steps" data-for="android">
+        <li>Play Store'dan <b>Firefox</b>'u kurun, ardından Firefox menüsü → Eklentiler'den <b>Violentmonkey</b> (ya da Tampermonkey) ekleyin.</li>
+        <li>Bu sayfayı <b>Firefox</b>'ta açıp <b>Kraken'ı kur</b> düğmesine dokunun, açılan ekranda <b>Yükle</b>'ye basın.</li>
+        <li><b>Oyunu aç</b> ile oyuna girin, giriş yapın ve oyuna başlayın.</li>
+      </ol>
+      <ol class="steps" data-for="pc">
+        <li>Tarayıcınıza <b>Tampermonkey</b> ya da <b>Violentmonkey</b> eklentisini kurun (Chrome, Edge, Firefox).</li>
+        <li><b>Kraken'ı kur</b> düğmesine basın ve eklentinin açtığı sayfada <b>Yükle</b>'yi onaylayın.</li>
+        <li><b>Oyunu aç</b> ile oyuna girin, giriş yapın ve oyuna başlayın.</li>
+      </ol>
+
+      <div class="actions">
+        <a class="button primary" href="/kraken.user.js">Kraken'ı kur</a>
+        <a class="button" href="https://www.seafight.com/" target="_blank" rel="noopener">Oyunu aç</a>
+      </div>
+      <p class="hint">Kurulumdan sonra betik kendini bu siteden günceller.</p>
+    </section>
+
+    <section class="card">
+      <h2>Oyunda</h2>
+      <p>Oyun yüklendiğinde sağ alttaki <b>K</b> düğmesi paneli açar: <b>Başlat</b>, <b>Duraklat</b>, <b>Durdur</b> ve <b>İncele</b>. İncele, oyun modülü hakkında bir özet çıkarır; <b>Kopyala</b> ile paylaşabilirsiniz.</p>
+      <p class="note">Geliştirme aşamasında: Kraken şu an oyunu yakalıyor ve motoru çalıştırıyor, oyunu okuma ve oynatma bir sonraki adımda geliyor.</p>
+    </section>
+
+    <footer>
+      <p><b>Uyarı.</b> Kraken bağımsız bir hobi projesidir; oyunun yapımcısı veya yayıncısıyla bir bağlantısı yoktur. Oyunu otomatikleştirmek kullanım şartlarına aykırı olabilir ve hesap kısıtlamasına yol açabilir. Kullanım sorumluluğu size aittir.</p>
+      <p class="owner"><a href="/play">Site sahibi modu</a> (yalnızca yetkili hesap)</p>
+    </footer>
+  </main>
+</body>
+</html>

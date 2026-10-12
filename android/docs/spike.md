@@ -23,6 +23,11 @@ Bu adımlar bulut ortamından yapılamadı: `seafight.com` ve `bot.ryik.dev` ağ
    - `il2cpp_*` fonksiyonları export ediliyorsa veya isim bölümünden bulunabiliyorsa: `il2cpp/registry.rs` ve `meta.rs` içindeki dinamik çözümleme mantığı wasm backend'i ile aynen kullanılır.
    - Değilse: modül yüklenmeden önce bayt kodu yamalanıp gereken fonksiyonlar export edilir (`state.modules[].bytes` bu iş için saklanıyor) ya da metadata tabanlı bir çözümleyici yazılır. Sabit indeks kullanılmamalı, çünkü her oyun güncellemesinde indeksler değişir.
 
+## Başka bir botun incelemesinden öğrenilenler (yalnızca yöntem)
+
+- Giriş, seafight.com'un kendisindeki Bigpoint formunda yapılıyor (`bgcdw_login_form`). Oyun sayfasına `internalStart` → `internalMapUnity` ile geçiliyor.
+- Oyunun kodu `fetch` ile `*.wasm.gz` olarak iniyor. O bot bu indirmeyi bekletip kendi wasm-bindgen modülünü yüklüyor, ardından oyunun devam etmesine izin veriyor. Bu, wasm'ın örneklenmeden önce yamalandığına işaret ediyor; il2cpp API'si büyük ihtimalle dışarıya açık değil. `kraken-boot.js` bu indirmeleri `state.downloads` içinde kaydediyor; **İncele** çıktısında görünüyorlar.
+
 ## Yol haritası
 
 - **Faz 1 (bitti):** `kraken-agent`'ın Windows'a bağlı kısımları `cfg(windows)` arkasında. Motor wasm'da derleniyor ve testleri Linux'ta da koşuyor. `kraken-web`, `kraken-boot.js`, Android kabuğu ve `cargo xtask web|android` hazır.

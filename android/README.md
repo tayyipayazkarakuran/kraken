@@ -2,6 +2,8 @@
 
 Oyunun tarayıcı (Unity WebGL) sürümünü telefonda açan ve Kraken'ı aynı sayfanın içinde çalıştıran APK. Windows'taki DLL enjeksiyonunun yerini burada bir WebView ve sayfa başında çalışan bir betik alır. Kararları yine aynı motor (`crates/kraken-agent/src/engine`) verir.
 
+> **Telefonda birincil yol artık web sitesi:** [../web/README.md](../web/README.md). APK isteğe bağlı ve şimdilik geliştirilmiyor; `kraken-web` ve `kraken-boot.js` ise her iki yolun ortak çekirdeği.
+
 > **Durum: Faz 1 (iskelet).** APK oyunu açıyor, Kraken'ı sayfaya yüklüyor ve Unity'nin wasm modülünü yakalıyor. Motor başlatılıp durdurulabiliyor. Oyun durumunu okuma ve eylemleri oyuna iletme (Faz 2) henüz yok, bu yüzden çalışan motor şimdilik boşta bekliyor. Yol haritası için [docs/spike.md](docs/spike.md) dosyasına bakın.
 
 ## Nasıl çalışır

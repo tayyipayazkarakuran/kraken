@@ -56,7 +56,8 @@ This runs formatting, clippy (`-D warnings`), and all the tests.
 | `crates/kraken-agent` | The DLL inside the game: IL2CPP bindings, message hooks, D3D11 overlay, and the decision engine (`src/engine`) |
 | `crates/kraken-injector` | A small 32-bit injector |
 | `crates/kraken-proto` | The app ↔ agent protocol: configuration, telemetry, and named-pipe framing |
-| `android` | Android app (WebView around the browser build of the game) and `kraken-web`, the engine compiled to wasm. Work in progress, see [android/README.md](android/README.md) |
+| `web` | Kraken on phones and in any browser: Cloudflare site, userscript, and an owner-only proxy. Work in progress, see [web/README.md](web/README.md) |
+| `android` | `kraken-web` (the engine compiled to wasm) and `kraken-boot.js`, shared with `web`; plus an optional Android WebView app |
 | `xtask` | `dist`, `check`, `reload` (hot-reloads the agent during development), `web`, and `android` |
 
 The engine is plain Rust with no game calls in it. It takes in a `World` snapshot and returns `Action`s, so all of its behaviour (target choice, repair flight, bonus maps, work-map routing, and so on) is covered by unit tests.

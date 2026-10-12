@@ -1,0 +1,21 @@
+name = "kraken"
+main = "src/worker.js"
+compatibility_date = "2026-09-01"
+
+# Static files: the site, and kraken-web under /__kraken/ (built by
+# `cargo xtask web`). Anything that is not a file reaches the Worker.
+[assets]
+directory = "public"
+binding = "ASSETS"
+not_found_handling = "none"
+
+[vars]
+# The game page the proxy opens at /play/.
+GAME_ORIGIN = "https://www.seafight.com"
+# Hosts the proxy may reach, comma separated; "*.example.com" covers subdomains.
+PROXY_HOSTS = "seafight.com,*.seafight.com"
+# Cloudflare Access protecting /play/*: the team domain
+# (https://<team>.cloudflareaccess.com) and the application's AUD tag.
+# While either is empty the proxy answers 403 to everyone.
+ACCESS_TEAM_DOMAIN = ""
+ACCESS_AUD = ""
