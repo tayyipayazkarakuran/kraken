@@ -9,6 +9,7 @@ pub mod engine;
 pub mod game;
 pub mod il2cpp;
 
+mod clientwatch;
 mod dump;
 mod hide;
 mod ipc;
@@ -98,6 +99,7 @@ fn boot(module: usize) {
         return;
     };
     tracing::info!(classes = registry.len(), "il2cpp registry built");
+    clientwatch::check(&registry);
     let messages = game::messages::MessageMap::build(&registry);
     tracing::info!(rules = messages.len(), "message rules resolved");
 

@@ -184,6 +184,11 @@ impl Game {
         let skill_bindings = skills::SkillBindings::resolve(&registry, &mut missing);
         let bonus_bindings = bonus::BonusBindings::resolve(&registry, &mut missing);
         let workmap_bindings = workmap::WorkmapBindings::resolve(&registry, &mut missing);
+        if missing.is_empty() {
+            tracing::info!("all bindings resolved");
+        } else {
+            tracing::warn!(?missing, "optional bindings missing");
+        }
         Ok(Self {
             registry,
             collections: Collections::default(),

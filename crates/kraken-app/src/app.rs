@@ -477,7 +477,7 @@ impl Core {
             } else {
                 QUIT_WITHOUT_GAME
             };
-            if now.duration_since(since) >= limit && now.duration_since(self.started) >= limit {
+            if !self.quit && now.duration_since(since) >= limit && now.duration_since(self.started) >= limit {
                 tracing::info!(seen_game = self.seen_game, "no game left, closing");
                 self.quit = true;
             }
