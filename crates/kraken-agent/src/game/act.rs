@@ -40,7 +40,7 @@ impl Game {
         }
     }
 
-    fn write_eid(&mut self, object: Ptr, name: &'static str, eid: Eid) -> Result<(), String> {
+    pub(super) fn write_eid(&mut self, object: Ptr, name: &'static str, eid: Eid) -> Result<(), String> {
         let class = Class::of(object).ok_or("null object")?;
         let field = self
             .field(class, name)
@@ -154,6 +154,12 @@ impl Game {
             Action::EdgeJump(map) => self.edge_jump(network, map),
             Action::ConfirmJump => self.confirm_jump(network),
             Action::Teleport(map) => self.teleport(network, map),
+            Action::LoadTorpedo {
+                preset,
+                slot,
+                torpedo,
+            } => self.load_torpedo(network, preset, slot, torpedo),
+            Action::Torpedo { target } => self.fire_torpedo(network, target),
             Action::Reconnect => {
                 if let Some(method) = self.reconnect {
                     let mut force = true;

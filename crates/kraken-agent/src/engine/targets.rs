@@ -49,11 +49,31 @@ pub fn npc(
         return None;
     }
     let listed = cfg.targets.iter().find(|t| t.type_id == actor.type_id);
-    let (priority, ammo, style) = match listed {
-        Some(t) => (t.priority, t.ammo.or(cfg.default_ammo), t.range),
-        None if cfg.attack_all => (LOWEST_PRIORITY, cfg.default_ammo, RangeStyle::Default),
+    let (priority, ammo, torpedo, style) = match listed {
+        Some(t) => (
+            t.priority,
+            t.ammo.or(cfg.default_ammo),
+            t.torpedo.or(cfg.default_torpedo),
+            t.range,
+        ),
+        None if cfg.attack_all => (
+            LOWEST_PRIORITY,
+            cfg.default_ammo,
+            cfg.default_torpedo,
+            RangeStyle::Default,
+        ),
         None => return None,
     };
+    // Undersea the launchers fire torpedoes; 0 fires whatever they hold.
+    if world.map.as_ref().is_some_and(|m| m.atlantis) {
+        return Some(match torpedo {
+            None => Ok((priority, 0, style)),
+            Some(id) => match world.stock(StockKind::Torpedo, id) {
+                Some(amount) if amount <= 0 => Err(Rejection::NoStock(StockKind::Torpedo, id)),
+                _ => Ok((priority, id, style)),
+            },
+        });
+    }
     Some(armed(world, StockKind::Ammo, ammo).map(|w| (priority, w, style)))
 }
 

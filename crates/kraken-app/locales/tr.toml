@@ -193,6 +193,7 @@ warning = "Uyarı"
 error = "Hata"
 
 [target]
+torpedo = "Torpido"
 settings = "Bu hedefe özel ayarlar"
 settings_title = "%{name} ayarları"
 priority = "Öncelik"
@@ -212,6 +213,10 @@ catalog_empty = "Katalog, varlıklar oyunda görüş alanına girdikçe dolar."
 refresh = "Kataloğu yenile"
 
 [npc]
+ammo_column = "Top güllesi (yüzey haritaları)"
+torpedo_column = "Torpido (Atlantis)"
+default_torpedo = "Varsayılan torpido"
+torpedo_hint = "Atlantis haritalarında top yerine torpido atılır. Seçilen torpido fırlatıcı yuvalarına yüklenir; otomatikse yuvalarda ne varsa o atılır."
 subtitle = "Hangi NPC'lere nasıl saldırılacağı."
 behaviour = "Davranış"
 enabled = "NPC savaşı"

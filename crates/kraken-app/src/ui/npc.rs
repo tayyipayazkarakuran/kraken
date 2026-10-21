@@ -134,6 +134,20 @@ pub fn item_combo(
     stock: &[Stock],
     kind: StockKind,
 ) -> bool {
+    let width = (ui.available_width() - 4.0).clamp(60.0, 220.0);
+    item_combo_sized(ui, id, value, items, stock, kind, width)
+}
+
+/// `item_combo` with a set width (two side by side in one cell).
+pub fn item_combo_sized(
+    ui: &mut Ui,
+    id: impl std::hash::Hash + std::fmt::Debug,
+    value: &mut Option<i16>,
+    items: &[ItemEntry],
+    stock: &[Stock],
+    kind: StockKind,
+    width: f32,
+) -> bool {
     let label = |id: Option<i16>| match id {
         None => t!("target.auto").into_owned(),
         Some(id) => {
@@ -149,7 +163,7 @@ pub fn item_combo(
     };
     let before = *value;
     egui::ComboBox::from_id_salt(id)
-        .width((ui.available_width() - 4.0).clamp(60.0, 220.0))
+        .width(width)
         .selected_text(label(*value))
         .show_ui(ui, |ui| {
             ui.selectable_value(value, None, label(None));
@@ -179,6 +193,53 @@ pub const TARGET_COLUMNS: [Col; 5] = [
     Col::Fixed(84.0),
 ];
 
+/// The NPC table: its weapon cell holds the cannonball and the Atlantis
+/// torpedo side by side.
+const NPC_COLUMNS: [Col; 5] = [
+    Col::Fill,
+    Col::Fixed(64.0),
+    Col::Fixed(300.0),
+    Col::Fixed(120.0),
+    Col::Fixed(84.0),
+];
+
+/// Cannonball and torpedo pickers in one cell, each behind its icon.
+#[allow(clippy::too_many_arguments)]
+fn weapons(
+    ui: &mut Ui,
+    index: usize,
+    ammo_value: &mut Option<i16>,
+    torpedo_value: &mut Option<i16>,
+    ammo: &[ItemEntry],
+    torpedoes: &[ItemEntry],
+    stock: &[Stock],
+) {
+    ui.spacing_mut().item_spacing.x = 4.0;
+    let width = ((ui.available_width() - 2.0 * 18.0 - 3.0 * 4.0) / 2.0).max(48.0);
+    ui.label(RichText::new(icon::CIRCLE).color(theme::MUTED))
+        .on_hover_text(t!("npc.ammo_column"));
+    item_combo_sized(
+        ui,
+        ("npc-ammo", index),
+        ammo_value,
+        ammo,
+        stock,
+        StockKind::Ammo,
+        width,
+    );
+    ui.label(RichText::new(icon::ROCKET).color(theme::SUCCESS))
+        .on_hover_text(t!("npc.torpedo_column"));
+    item_combo_sized(
+        ui,
+        ("npc-torpedo", index),
+        torpedo_value,
+        torpedoes,
+        stock,
+        StockKind::Torpedo,
+        width,
+    );
+}
+
 /// Opens a target's own settings; shows how many item rules it has.
 pub fn settings_button(ui: &mut Ui, rules: usize) -> bool {
     let tip = t!("target.settings");
@@ -194,6 +255,7 @@ pub fn show(ui: &mut Ui, state: &mut State) {
     widgets::page_title(ui, icon::CROSSHAIR, &t!("page.npc"), &t!("npc.subtitle"));
     let stock = state.live().map(|t| t.stock.clone()).unwrap_or_default();
     let ammo = names::items(state, StockKind::Ammo, &state.catalog.ammo, &stock);
+    let torpedoes = names::items(state, StockKind::Torpedo, &state.catalog.torpedoes, &stock);
     let entries = names::entries(state, NameKind::Npc, &state.catalog.npcs);
     let rows = names::order(
         state,
@@ -241,7 +303,22 @@ pub fn show(ui: &mut Ui, state: &mut State) {
                     StockKind::Ammo,
                 );
             });
+            widgets::field_row(
+                ui,
+                &format!("{} {}", icon::ROCKET, t!("npc.default_torpedo")),
+                |ui| {
+                    item_combo(
+                        ui,
+                        "npc-default-torpedo",
+                        &mut npc.default_torpedo,
+                        &torpedoes,
+                        &stock,
+                        StockKind::Torpedo,
+                    );
+                },
+            );
             widgets::muted(ui, &t!("npc.ammo_hint"));
+            widgets::muted(ui, &t!("npc.torpedo_hint"));
         }),
     });
     widgets::card(
@@ -256,6 +333,7 @@ pub fn show(ui: &mut Ui, state: &mut State) {
                     name: entry.name,
                     priority: 5,
                     ammo: None,
+                    torpedo: None,
                     range: RangeStyle::Default,
                     items: Vec::new(),
                 });
@@ -265,7 +343,7 @@ pub fn show(ui: &mut Ui, state: &mut State) {
             }
             ui.add_space(theme::SPACE_XS);
             let mut remove = None;
-            let table = Table::new(ui, &TARGET_COLUMNS);
+            let table = Table::new(ui, &NPC_COLUMNS);
             for (row, (index, entry)) in rows.iter().enumerate() {
                 let index = *index;
                 let Some(target) = npc.targets.get_mut(index) else {
@@ -275,13 +353,14 @@ pub fn show(ui: &mut Ui, state: &mut State) {
                     cells.text(entry_text(entry));
                     cells.cell(|ui| priority(ui, &mut target.priority));
                     cells.cell(|ui| {
-                        item_combo(
+                        weapons(
                             ui,
-                            ("npc-ammo", index),
+                            index,
                             &mut target.ammo,
+                            &mut target.torpedo,
                             &ammo,
+                            &torpedoes,
                             &stock,
-                            StockKind::Ammo,
                         );
                     });
                     cells.cell(|ui| {

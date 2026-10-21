@@ -37,6 +37,7 @@ fn world(hero: Point) -> World {
             kind_name: "PVE".into(),
             width: 600.0,
             height: 600.0,
+            atlantis: false,
         }),
         hero: Some(HeroState {
             id: HERO,
@@ -73,6 +74,7 @@ fn world(hero: Point) -> World {
         items: Vec::new(),
         skills: Vec::new(),
         bonus: Vec::new(),
+        torpedo: Default::default(),
         atlas: Vec::new(),
         teleports: 0,
         teleport_ready: false,
@@ -116,6 +118,7 @@ fn running(mode: WorkMode) -> Engine {
         name: "Npc5".into(),
         priority: 1,
         ammo: Some(3),
+        torpedo: None,
         range: RangeStyle::Default,
         items: Vec::new(),
     });
@@ -486,6 +489,7 @@ fn untouched_target_gives_way_to_higher_priority() {
         name: "Npc6".into(),
         priority: 1,
         ammo: Some(3),
+        torpedo: None,
         range: RangeStyle::Default,
         items: Vec::new(),
     });
@@ -2066,5 +2070,84 @@ mod workmap {
         engine.step(500, &w, &caps(), &OpenWater);
         assert_eq!(engine.activity(), Activity::Repairing);
         let _ = HERO;
+    }
+}
+
+mod torpedo {
+    use kraken_proto::{Point, Stock, StockKind, WorkMode};
+
+    use super::{caps, npc, running, world};
+    use crate::engine::world::{Action, OpenWater, TorpedoState, World};
+
+    fn undersea(slots: &[(i16, i16)], cooling: bool) -> World {
+        let mut w = world(Point::new(300.0, 0.0));
+        w.map.as_mut().unwrap().atlantis = true;
+        w.stock.push(Stock {
+            kind: StockKind::Torpedo,
+            id: 7,
+            amount: 20,
+        });
+        w.torpedo = TorpedoState {
+            preset: Some(240),
+            slots: slots.to_vec(),
+            cooling,
+        };
+        w.actors.push(npc(10, 5, 305.0, 0.0));
+        w
+    }
+
+    fn fire(engine: &mut crate::engine::Engine, w: &World) -> Vec<Action> {
+        let mut all = Vec::new();
+        for at in [1_000, 2_000, 3_000] {
+            all.extend(engine.step(at, w, &caps(), &OpenWater));
+        }
+        all
+    }
+
+    #[test]
+    fn fires_torpedoes_not_cannonballs_undersea() {
+        let mut engine = running(WorkMode::Combat);
+        let actions = fire(&mut engine, &undersea(&[(1, 3), (2, 3)], false));
+        assert!(
+            actions.iter().any(|a| matches!(a, Action::Torpedo { .. })),
+            "{actions:?}"
+        );
+        assert!(!actions.iter().any(|a| matches!(a, Action::Cannon { .. })));
+    }
+
+    #[test]
+    fn loads_the_chosen_torpedo_into_other_slots() {
+        let mut engine = running(WorkMode::Combat);
+        let mut cfg = engine.config().clone();
+        cfg.npc.targets[0].torpedo = Some(7);
+        engine.configure(cfg);
+        let actions = fire(&mut engine, &undersea(&[(1, 3), (2, 7)], false));
+        assert!(actions.contains(&Action::LoadTorpedo {
+            preset: 240,
+            slot: 1,
+            torpedo: 7
+        }));
+        assert!(
+            !actions
+                .iter()
+                .any(|a| matches!(a, Action::LoadTorpedo { slot: 2, .. }))
+        );
+        assert!(actions.iter().any(|a| matches!(a, Action::Torpedo { .. })));
+    }
+
+    #[test]
+    fn waits_for_the_load_and_the_launchers() {
+        let mut engine = running(WorkMode::Combat);
+        let mut cfg = engine.config().clone();
+        cfg.npc.default_torpedo = Some(7);
+        engine.configure(cfg);
+        // Nothing holds torpedo 7 yet: load, but no shot.
+        let actions = fire(&mut engine, &undersea(&[(1, 3)], false));
+        assert!(actions.iter().any(|a| matches!(a, Action::LoadTorpedo { .. })));
+        assert!(!actions.iter().any(|a| matches!(a, Action::Torpedo { .. })));
+        // Loaded but every launcher cooling: still no shot.
+        let mut engine = running(WorkMode::Combat);
+        let actions = fire(&mut engine, &undersea(&[(1, 3)], true));
+        assert!(!actions.iter().any(|a| matches!(a, Action::Torpedo { .. })));
     }
 }

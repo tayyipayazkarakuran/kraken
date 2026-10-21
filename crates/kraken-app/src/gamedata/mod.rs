@@ -17,7 +17,7 @@ use crate::profile::data_dir;
 
 pub const LANGUAGES: [&str; 2] = ["tr", "en"];
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-const CACHE_VERSION: u32 = 5;
+const CACHE_VERSION: u32 = 6;
 const DEFAULT_CDN: &str =
     "https://alicdn-prod.seafight.com/unityclient/SeafightWindows/Seafight_Data/StreamingAssets/aa";
 
@@ -30,7 +30,7 @@ pub struct Language {
 
 #[derive(Debug)]
 pub enum Update {
-    Loaded(String, Language),
+    Loaded(String, Box<Language>),
     Failed(String, String),
 }
 
@@ -46,7 +46,7 @@ pub fn spawn(ctx: eframe::egui::Context) -> Receiver<Update> {
                     .ok_or_else(|| "Seafight client not found".to_owned())
                 {
                     Ok(client) => match load(client, lang) {
-                        Ok(language) => Update::Loaded(lang.to_owned(), language),
+                        Ok(language) => Update::Loaded(lang.to_owned(), Box::new(language)),
                         Err(error) => Update::Failed(lang.to_owned(), error),
                     },
                     Err(error) => Update::Failed(lang.to_owned(), error),
@@ -224,12 +224,13 @@ fn texts(bundle: &[u8]) -> Result<HashMap<String, String>, String> {
     Err("no localisation table in bundle".into())
 }
 
-const KINDS: [(NameKind, &str); 8] = [
+const KINDS: [(NameKind, &str); 9] = [
     (NameKind::Npc, "npc"),
     (NameKind::Monster, "monster"),
     (NameKind::Box, "box"),
     (NameKind::Ammo, "ammo"),
     (NameKind::Harpoon, "harpoon"),
+    (NameKind::Torpedo, "torpedo"),
     (NameKind::ActionItem, "item"),
     (NameKind::Currency, "currency"),
     (NameKind::Map, "map"),

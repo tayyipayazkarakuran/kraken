@@ -193,6 +193,7 @@ warning = "Warning"
 error = "Error"
 
 [target]
+torpedo = "Torpedo"
 settings = "Settings for this target"
 settings_title = "%{name} settings"
 priority = "Priority"
@@ -212,6 +213,10 @@ catalog_empty = "The catalog fills in as entities come into sight in the game."
 refresh = "Refresh catalog"
 
 [npc]
+ammo_column = "Cannonball (surface maps)"
+torpedo_column = "Torpedo (Atlantis)"
+default_torpedo = "Default torpedo"
+torpedo_hint = "On Atlantis maps torpedoes are fired instead of cannonballs. The chosen torpedo is loaded into the launcher slots; on auto, whatever the launchers hold is fired."
 subtitle = "Which NPCs to attack and how."
 behaviour = "Behaviour"
 enabled = "NPC combat"

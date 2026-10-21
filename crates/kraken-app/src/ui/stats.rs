@@ -32,6 +32,7 @@ fn kind_key(kind: StockKind) -> u8 {
     match kind {
         StockKind::Ammo => 0,
         StockKind::Harpoon => 1,
+        StockKind::Torpedo => 6,
         StockKind::Currency => 2,
         StockKind::Points => 3,
         StockKind::Token => 4,

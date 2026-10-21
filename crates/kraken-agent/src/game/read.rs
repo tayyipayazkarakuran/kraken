@@ -245,6 +245,7 @@ impl Game {
             let stock_kind = match self.enum_name(kind.ty, code).as_deref() {
                 Some("BALLS") => StockKind::Ammo,
                 Some("HARPOONS") => StockKind::Harpoon,
+                Some("TORPEDOES") => StockKind::Torpedo,
                 Some("CURRENCY") => StockKind::Currency,
                 Some("POINTS") => StockKind::Points,
                 Some("TOKENS") => StockKind::Token,
@@ -330,6 +331,7 @@ impl Game {
                 kind_name,
                 width: self.num(map, "width").unwrap_or(0.0) as f32,
                 height: self.num(map, "height").unwrap_or(0.0) as f32,
+                atlantis: self.is_atlantis(),
             });
         }
 
@@ -563,6 +565,9 @@ impl Game {
         scan.world.skills = self.cached_skills(network);
         scan.world.bonus = self.bonus_maps(inventory, &scan.world.stock);
         (scan.world.teleports, scan.world.teleport_ready) = self.teleport_stock;
+        if scan.world.map.as_ref().is_some_and(|m| m.atlantis) {
+            scan.world.torpedo = self.torpedo_state(network);
+        }
         scan.world.atlas = self.atlas();
         scan.world.ready = scan.world.map.is_some() && scan.world.hero.is_some();
         scan

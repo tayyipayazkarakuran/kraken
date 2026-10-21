@@ -171,6 +171,8 @@ pub struct NpcConfig {
     pub enabled: bool,
     pub attack_all: bool,
     pub default_ammo: Option<i16>,
+    /// Torpedo on Atlantis maps; `None` fires whatever the launchers hold.
+    pub default_torpedo: Option<i16>,
     pub keep_range: bool,
     pub range_percent: u8,
     pub targets: Vec<NpcTarget>,
@@ -182,6 +184,7 @@ impl Default for NpcConfig {
             enabled: true,
             attack_all: false,
             default_ammo: None,
+            default_torpedo: None,
             keep_range: false,
             range_percent: 90,
             targets: Vec::new(),
@@ -195,6 +198,9 @@ pub struct NpcTarget {
     pub name: String,
     pub priority: u8,
     pub ammo: Option<i16>,
+    /// Torpedo for this NPC on Atlantis maps; `None` uses the default.
+    #[serde(default)]
+    pub torpedo: Option<i16>,
     pub range: RangeStyle,
     /// Item rules that only concern this NPC type.
     #[serde(default)]

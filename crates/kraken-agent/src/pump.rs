@@ -59,6 +59,7 @@ struct Book {
     boxes: BTreeMap<i32, String>,
     ammo: BTreeMap<i16, String>,
     harpoons: BTreeMap<i16, String>,
+    torpedoes: BTreeMap<i16, String>,
     items: Vec<ActionItemEntry>,
     bonus_maps: Vec<BonusMapEntry>,
     atlas: Vec<AtlasEntry>,
@@ -118,6 +119,7 @@ impl Book {
             let (table, kind) = match stock.kind {
                 StockKind::Ammo => (&mut self.ammo, NameKind::Ammo),
                 StockKind::Harpoon => (&mut self.harpoons, NameKind::Harpoon),
+                StockKind::Torpedo => (&mut self.torpedoes, NameKind::Torpedo),
                 // Wallet names come from the app's game data.
                 StockKind::Currency | StockKind::Points | StockKind::Token | StockKind::BonusMap => continue,
             };
@@ -252,6 +254,7 @@ impl Book {
             boxes: entries(&self.boxes, NameKind::Box),
             ammo: items(&self.ammo, NameKind::Ammo),
             harpoons: items(&self.harpoons, NameKind::Harpoon),
+            torpedoes: items(&self.torpedoes, NameKind::Torpedo),
             items: self.items.clone(),
             bonus_maps: self.bonus_maps.clone(),
             atlas: self.atlas.clone(),

@@ -4,13 +4,14 @@ use serde::{Deserialize, Serialize};
 
 /// Localisation key prefixes the game uses for entity and item names; the
 /// numeric suffix is the type id the game reports at runtime.
-const PREFIXES: [(&str, NameKind); 9] = [
+const PREFIXES: [(&str, NameKind); 10] = [
     ("seafight.npcnames.npc.", NameKind::Npc),
     ("seafight.labels.Monsters.", NameKind::Monster),
     ("seafight.labels.Boxes.", NameKind::Box),
     ("seafight.labels.BoxType.", NameKind::Box),
     ("seafight.labels.Ammunition.", NameKind::Ammo),
     ("seafight.labels.Harpoons.", NameKind::Harpoon),
+    ("seafight.labels.Torpedoes.", NameKind::Torpedo),
     ("seafight.labels.ActionItems.", NameKind::ActionItem),
     ("seafight.labels.Currency.", NameKind::Currency),
     ("seafight.labels.Maps.", NameKind::Map),
@@ -25,6 +26,8 @@ pub enum NameKind {
     Box,
     Ammo,
     Harpoon,
+    /// Atlantis torpedoes (inventory `TORPEDOES`).
+    Torpedo,
     ActionItem,
     Currency,
     Map,
@@ -37,6 +40,8 @@ pub struct NameTable {
     pub boxes: BTreeMap<i32, String>,
     pub ammo: BTreeMap<i32, String>,
     pub harpoons: BTreeMap<i32, String>,
+    #[serde(default)]
+    pub torpedoes: BTreeMap<i32, String>,
     #[serde(default)]
     pub items: BTreeMap<i32, String>,
     #[serde(default)]
@@ -53,6 +58,7 @@ impl NameTable {
             NameKind::Box => &self.boxes,
             NameKind::Ammo => &self.ammo,
             NameKind::Harpoon => &self.harpoons,
+            NameKind::Torpedo => &self.torpedoes,
             NameKind::ActionItem => &self.items,
             NameKind::Currency => &self.currencies,
             NameKind::Map => &self.maps,
@@ -66,6 +72,7 @@ impl NameTable {
             NameKind::Box => &mut self.boxes,
             NameKind::Ammo => &mut self.ammo,
             NameKind::Harpoon => &mut self.harpoons,
+            NameKind::Torpedo => &mut self.torpedoes,
             NameKind::ActionItem => &mut self.items,
             NameKind::Currency => &mut self.currencies,
             NameKind::Map => &mut self.maps,
@@ -86,6 +93,7 @@ impl NameTable {
             + self.boxes.len()
             + self.ammo.len()
             + self.harpoons.len()
+            + self.torpedoes.len()
             + self.items.len()
             + self.currencies.len()
             + self.maps.len()

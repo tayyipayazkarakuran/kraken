@@ -275,6 +275,8 @@ pub struct NearbyIds {
 pub enum StockKind {
     Ammo,
     Harpoon,
+    /// Inventory `TORPEDOES`: Atlantis torpedoes.
+    Torpedo,
     /// Inventory `CURRENCY` (gold, pearls, crowns, Yulong, Safanad…).
     Currency,
     /// Inventory `POINTS`.
@@ -442,6 +444,7 @@ pub struct Catalog {
     pub boxes: Vec<CatalogEntry>,
     pub ammo: Vec<ItemEntry>,
     pub harpoons: Vec<ItemEntry>,
+    pub torpedoes: Vec<ItemEntry>,
     /// Action items the hero owns.
     pub items: Vec<ActionItemEntry>,
     /// Bonus maps the hero owns.

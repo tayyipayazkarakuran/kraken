@@ -36,6 +36,8 @@ pub struct MapState {
     pub kind_name: String,
     pub width: f32,
     pub height: f32,
+    /// An undersea map: torpedoes instead of cannonballs.
+    pub atlantis: bool,
 }
 
 /// Why the game's own repair button would refuse right now
@@ -188,6 +190,8 @@ pub struct World {
     pub items: Vec<ActionItem>,
     pub skills: Vec<MasterSkill>,
     pub bonus: Vec<BonusMap>,
+    /// Torpedo launchers (read on Atlantis maps only).
+    pub torpedo: TorpedoState,
     /// The world map, once the game has it loaded (or from the cache).
     pub atlas: Vec<MapCell>,
     /// Teleport items in stock (action item 34) and whether one is ready.
@@ -346,9 +350,29 @@ pub enum Action {
     /// `ConfirmMapChangeMessage(CONFIRM_MAP_JUMP)`
     /// (`MapSwitchBehaviour.OnMapSwitchConfirm`).
     ConfirmJump,
+    /// `TorpedoSystem.RequestPresetModification`: put `torpedo` into a
+    /// launcher slot of the active preset.
+    LoadTorpedo {
+        preset: i32,
+        slot: i16,
+        torpedo: i16,
+    },
+    /// `TorpedoAttackMessage`: the launchers fire at `target`.
+    Torpedo {
+        target: Eid,
+    },
     /// `TeleportMessage`, as the world map's teleport button does
     /// (`WorldMapDataSystem.RequestTeleportation`).
     Teleport(i16),
+}
+
+/// The active torpedo preset: (slot, torpedo id) per launcher.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct TorpedoState {
+    pub preset: Option<i32>,
+    pub slots: Vec<(i16, i16)>,
+    /// Every launcher is reloading.
+    pub cooling: bool,
 }
 
 /// A map on the game's world map (`Seafight.WorldMap.MapCellData`).

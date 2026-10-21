@@ -213,6 +213,7 @@ mod tests {
             name: "Pirate".into(),
             priority: 3,
             ammo: Some(4),
+            torpedo: Some(7),
             range: RangeStyle::Keep,
             items: Vec::new(),
         });

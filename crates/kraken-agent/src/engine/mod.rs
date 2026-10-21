@@ -52,6 +52,10 @@ const DETOUR_ABANDON: f32 = 0.95;
 const ATTACK_INTERVAL_MS: u64 = 300;
 const REFIRE_UNCONFIRMED_MS: u64 = 2_500;
 const REFIRE_SILENT_MS: u64 = 6_000;
+/// Between two torpedo orders (the launchers' own cooldown decides the rest).
+const TORPEDO_GAP_MS: u64 = 900;
+/// A load request not reflected in the preset by then is sent again.
+const TORPEDO_LOAD_RETRY_MS: u64 = 3_000;
 const WARN_REPEAT_MS: u64 = 60_000;
 /// After this many failed fast retries (~2.5 min of the game being down), a
 /// generic outage is treated as a long one and waits the configured delay.
@@ -64,6 +68,8 @@ struct Engagement {
     type_id: i32,
     name: String,
     weapon: i16,
+    /// Fought with torpedoes (Atlantis); `weapon` is the torpedo, 0 = any.
+    torpedo: bool,
     last_fire: u64,
     last_hit: u64,
     hits: u32,
@@ -175,6 +181,7 @@ pub struct Engine {
     attack_active: bool,
     last_damage: Option<u64>,
     last_attack_cmd: Option<u64>,
+    torpedo_load_at: Option<u64>,
     hero_id: Eid,
     /// Last seen hero position, for feedback that arrives between scans.
     hero_pos: Option<Point>,
@@ -217,6 +224,7 @@ impl Engine {
             attack_active: false,
             last_damage: None,
             last_attack_cmd: None,
+            torpedo_load_at: None,
             hero_id: Eid::default(),
             hero_pos: None,
             map_id: None,
@@ -1005,6 +1013,8 @@ impl Engine {
         }
         let stocked = match e.kind {
             EntityKind::Monster => world.stock(StockKind::Harpoon, e.weapon),
+            _ if e.torpedo && e.weapon == 0 => None,
+            _ if e.torpedo => world.stock(StockKind::Torpedo, e.weapon),
             _ => world.stock(StockKind::Ammo, e.weapon),
         };
         if stocked.is_some_and(|n| n <= 0) {
@@ -1186,6 +1196,7 @@ impl Engine {
                 type_id: target.type_id,
                 name: target.name.clone(),
                 weapon: choice.weapon,
+                torpedo: target.kind == EntityKind::Npc && world.map.as_ref().is_some_and(|m| m.atlantis),
                 last_fire: 0,
                 last_hit: 0,
                 hits: 0,
@@ -1197,6 +1208,15 @@ impl Engine {
                 ready_at,
                 refire_gap: 0,
             });
+            if self.engage.as_ref().is_some_and(|e| e.torpedo) {
+                tracing::info!(
+                    target = %target.name,
+                    torpedo = choice.weapon,
+                    range = hero.cannon_range,
+                    launchers = ?world.torpedo,
+                    "torpedo engagement"
+                );
+            }
             self.emit(
                 Level::Info,
                 EventCode::TargetEngaged,
@@ -1274,6 +1294,13 @@ impl Engine {
                 self.skip(target.id, now, SKIP_TARGET_MS, out, &name);
                 return;
             }
+            if e.torpedo {
+                let (weapon, ready_at) = (e.weapon, e.ready_at);
+                if now >= ready_at {
+                    self.torpedo_fire(now, world, target.id, weapon, out);
+                }
+                return;
+            }
             let gap = e.refire_gap;
             let since_fire = now.saturating_sub(e.last_fire);
             let confirmed = e.last_hit >= e.last_fire && e.last_fire > 0;
@@ -1305,6 +1332,49 @@ impl Engine {
             }
         } else {
             e.in_range_since = None;
+        }
+    }
+
+    /// Atlantis: load the wanted torpedo into every launcher that holds
+    /// something else, and fire once a launcher holds it and is ready.
+    fn torpedo_fire(&mut self, now: u64, world: &World, target: Eid, want: i16, out: &mut Vec<Action>) {
+        let state = &world.torpedo;
+        if want > 0
+            && let Some(preset) = state.preset
+            && self
+                .torpedo_load_at
+                .is_none_or(|t| now.saturating_sub(t) >= TORPEDO_LOAD_RETRY_MS)
+        {
+            let wrong: Vec<i16> = state
+                .slots
+                .iter()
+                .filter(|(_, t)| *t != want)
+                .map(|(s, _)| *s)
+                .collect();
+            if !wrong.is_empty() {
+                tracing::info!(preset, ?wrong, torpedo = want, "loading torpedoes");
+                self.torpedo_load_at = Some(now);
+                out.extend(wrong.into_iter().map(|slot| Action::LoadTorpedo {
+                    preset,
+                    slot,
+                    torpedo: want,
+                }));
+            }
+        }
+        let loaded = if want > 0 {
+            state.slots.iter().any(|(_, t)| *t == want)
+        } else {
+            state.slots.is_empty() || state.slots.iter().any(|(_, t)| *t > 0)
+        };
+        let paced = self
+            .last_attack_cmd
+            .is_none_or(|t| now.saturating_sub(t) >= TORPEDO_GAP_MS);
+        if loaded && !state.cooling && paced {
+            self.last_attack_cmd = Some(now);
+            if let Some(e) = self.engage.as_mut() {
+                e.last_fire = now;
+            }
+            out.push(Action::Torpedo { target });
         }
     }
 

@@ -5,6 +5,7 @@ pub mod messages;
 pub mod projection;
 mod read;
 mod skills;
+mod torpedo;
 mod ui;
 mod war;
 mod workmap;
@@ -64,6 +65,7 @@ pub struct Game {
     pub skill_bindings: skills::SkillBindings,
     pub bonus_bindings: bonus::BonusBindings,
     pub workmap_bindings: workmap::WorkmapBindings,
+    pub torpedo_bindings: torpedo::TorpedoBindings,
     atlas: workmap::AtlasCache,
     bonus_waves: HashMap<i16, u8>,
     skills: skills::SkillCache,
@@ -184,6 +186,7 @@ impl Game {
         let skill_bindings = skills::SkillBindings::resolve(&registry, &mut missing);
         let bonus_bindings = bonus::BonusBindings::resolve(&registry, &mut missing);
         let workmap_bindings = workmap::WorkmapBindings::resolve(&registry, &mut missing);
+        let torpedo_bindings = torpedo::TorpedoBindings::resolve(&registry, &mut missing);
         if missing.is_empty() {
             tracing::info!("all bindings resolved");
         } else {
@@ -222,6 +225,7 @@ impl Game {
             skill_bindings,
             bonus_bindings,
             workmap_bindings,
+            torpedo_bindings,
             atlas: workmap::AtlasCache::default(),
             bonus_waves: HashMap::new(),
             skills: skills::SkillCache::default(),

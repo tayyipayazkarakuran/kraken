@@ -189,6 +189,12 @@ pub fn target_dialog(ui: &mut Ui, state: &mut State) {
     let owned = super::war::owned(state);
     let stock = state.live().map(|t| t.stock.clone()).unwrap_or_default();
     let ammo = super::names::items(state, kraken_proto::StockKind::Ammo, &state.catalog.ammo, &stock);
+    let torpedoes = super::names::items(
+        state,
+        kraken_proto::StockKind::Torpedo,
+        &state.catalog.torpedoes,
+        &stock,
+    );
     let harpoons = super::names::items(
         state,
         kraken_proto::StockKind::Harpoon,
@@ -228,6 +234,16 @@ pub fn target_dialog(ui: &mut Ui, state: &mut State) {
                             &ammo,
                             &stock,
                             kraken_proto::StockKind::Ammo,
+                        );
+                    });
+                    widgets::field_row(ui, &t!("target.torpedo"), |ui| {
+                        super::npc::item_combo(
+                            ui,
+                            ("dialog-torpedo", type_id),
+                            &mut target.torpedo,
+                            &torpedoes,
+                            &stock,
+                            kraken_proto::StockKind::Torpedo,
                         );
                     });
                     widgets::field_row(ui, &t!("target.range"), |ui| {

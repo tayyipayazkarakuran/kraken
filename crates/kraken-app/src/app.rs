@@ -153,7 +153,7 @@ impl Core {
             match update {
                 Update::Loaded(lang, language) => {
                     Arc::make_mut(&mut self.shared.failed).remove(&lang);
-                    Arc::make_mut(&mut self.shared.names).insert(lang, language);
+                    Arc::make_mut(&mut self.shared.names).insert(lang, *language);
                 }
                 Update::Failed(lang, error) => {
                     Arc::make_mut(&mut self.shared.failed).insert(lang, error);

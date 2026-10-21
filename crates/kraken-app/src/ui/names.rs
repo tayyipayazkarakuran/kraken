@@ -48,9 +48,12 @@ pub fn nearby(state: &State, kind: NameKind) -> Vec<i32> {
         NameKind::Npc => t.nearby.npcs.clone(),
         NameKind::Monster => t.nearby.monsters.clone(),
         NameKind::Box => t.nearby.boxes.clone(),
-        NameKind::Ammo | NameKind::Harpoon | NameKind::ActionItem | NameKind::Currency | NameKind::Map => {
-            Vec::new()
-        }
+        NameKind::Ammo
+        | NameKind::Harpoon
+        | NameKind::Torpedo
+        | NameKind::ActionItem
+        | NameKind::Currency
+        | NameKind::Map => Vec::new(),
     })
 }
 
@@ -126,6 +129,7 @@ pub fn stock_names(kind: StockKind) -> NameKind {
     match kind {
         StockKind::Ammo => NameKind::Ammo,
         StockKind::Harpoon => NameKind::Harpoon,
+        StockKind::Torpedo => NameKind::Torpedo,
         StockKind::Currency | StockKind::Points | StockKind::Token => NameKind::Currency,
         StockKind::BonusMap => NameKind::Map,
     }
