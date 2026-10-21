@@ -78,6 +78,7 @@ pub fn editor(
             cells.cell(|ui| {
                 egui::ComboBox::from_id_salt((id, "scene", index))
                     .width(ui.available_width() - 4.0)
+                    .truncate()
                     .selected_text(i18n::scene(rule.scene, target))
                     .show_ui(ui, |ui| {
                         for scene in scenes {
@@ -88,6 +89,7 @@ pub fn editor(
             cells.cell(|ui| {
                 egui::ComboBox::from_id_salt((id, "condition", index))
                     .width(ui.available_width() - 4.0)
+                    .truncate()
                     .selected_text(i18n::condition(rule.condition))
                     .show_ui(ui, |ui| {
                         for kind in Condition::KINDS {

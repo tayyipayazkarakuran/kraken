@@ -162,15 +162,30 @@ pub fn item_combo_sized(
         }
     };
     let before = *value;
-    egui::ComboBox::from_id_salt(id)
-        .width(width)
-        .selected_text(label(*value))
-        .show_ui(ui, |ui| {
-            ui.selectable_value(value, None, label(None));
-            for item in items {
-                ui.selectable_value(value, Some(item.id), label(Some(item.id)));
-            }
-        });
+    let selected = label(*value);
+    // A box of exactly `width`: a long name is cut with "…" (full text on
+    // hover) instead of widening the box and pushing the row apart.
+    let height = ui.spacing().interact_size.y;
+    ui.allocate_ui_with_layout(
+        egui::vec2(width, height),
+        egui::Layout::left_to_right(egui::Align::Center),
+        |ui| {
+            ui.set_max_width(width);
+            egui::ComboBox::from_id_salt(id)
+                .width(width)
+                .truncate()
+                .selected_text(selected.clone())
+                .show_ui(ui, |ui| {
+                    ui.set_min_width(260.0);
+                    ui.selectable_value(value, None, label(None));
+                    for item in items {
+                        ui.selectable_value(value, Some(item.id), label(Some(item.id)));
+                    }
+                })
+                .response
+                .on_hover_text(selected);
+        },
+    );
     *value != before
 }
 
@@ -366,6 +381,7 @@ pub fn show(ui: &mut Ui, state: &mut State) {
                     cells.cell(|ui| {
                         egui::ComboBox::from_id_salt(("npc-range", index))
                             .width(ui.available_width() - 4.0)
+                            .truncate()
                             .selected_text(i18n::range(target.range))
                             .show_ui(ui, |ui| {
                                 for style in RangeStyle::ALL {

@@ -309,6 +309,7 @@ fn toggles(when: ItemWhen) -> bool {
 fn condition(ui: &mut Ui, index: usize, when: &mut ItemWhen) {
     egui::ComboBox::from_id_salt(("war-when", index))
         .width(ui.available_width() - 4.0)
+        .truncate()
         .selected_text(i18n::item_when(*when))
         .show_ui(ui, |ui| {
             for kind in ItemWhen::KINDS {
